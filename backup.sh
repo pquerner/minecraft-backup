@@ -1,13 +1,14 @@
 #!/bin/bash
-SCREEN_NAME="minecraft"
+
+SCREEN_NAME="survival"
 SERVER_WORLDS=()
-SERVER_WORLDS[0]="/home/minecraft/server/world"
-SERVER_WORLDS[1]="/home/minecraft/server/world_nether"
-SERVER_WORLDS[2]="/home/minecraft/server/world_the_end"
+SERVER_WORLDS[0]="/home/minecraft/server_priv_1.14.2/World"
+SERVER_WORLDS[1]="/home/minecraft/server_priv_1.14.2/World_nether"
+SERVER_WORLDS[2]="/home/minecraft/server_priv_1.14.2/World_the_end"
 BACKUP_DIRECTORYS=()
-BACKUP_DIRECTORYS[0]="/home/minecraft/backup/world"
-BACKUP_DIRECTORYS[1]="/home/minecraft/backup/world_nether"
-BACKUP_DIRECTORYS[2]="/home/minecraft/backup/world_the_end"
+BACKUP_DIRECTORYS[0]="/home/minecraft/server_priv_1.14.2/backups/"
+#BACKUP_DIRECTORYS[1]="/home/minecraft/server_priv_1.14.2/backups/World_nether"
+#BACKUP_DIRECTORYS[2]="/home/minecraft/server_priv_1.14.2/backups/World_the_end"
 MAX_BACKUPS=128
 DELETE_METHOD="thin"
 COMPRESSION_ALGORITHM="gzip"
@@ -159,9 +160,9 @@ parse-file-timestamp () {
 delete-backup () {
   local BACKUP_DIRECTORY=$1
   local BACKUP=$2
-  rm $BACKUP_DIRECTORY/$BACKUP
+  rm $BACKUP_DIRECTORY/$BACKUP && message-players-color-single "Deleted $BACKUP" "grey"
   #message-players "Deleted old backup" "$BACKUP"
-  message-players-color-single "Deleted $BACKUP" "grey"
+  #message-players-color-single "Deleted $BACKUP" "grey"
 }
 
 # Sequential delete method
@@ -170,7 +171,7 @@ delete-sequentially () {
   local WORLD_NAME=$2
   local BACKUPS=($(ls $BACKUP_DIRECTORY | grep $WORLD_NAME | grep -ve $SPECIAL_BACKUP))
   while [[ $MAX_BACKUPS -ge 0 && ${#BACKUPS[@]} -gt $MAX_BACKUPS ]]; do
-    delete-backup BACKUP_DIRECTORY ${BACKUPS[0]}
+    delete-backup $BACKUP_DIRECTORY ${BACKUPS[0]}
     BACKUPS=($(ls $BACKUP_DIRECTORY | grep $WORLD_NAME | grep -ve $SPECIAL_BACKUP))
   done
 }
@@ -312,7 +313,7 @@ do
       tar -cf $ARCHIVE_PATH -C $SERVER_WORLD .
       ;;
     *) # With compression
-      tar -cf - -C $SERVER_WORLD . | $COMPRESSION_ALGORITHM -cv -$COMPRESSION_LEVEL - > $ARCHIVE_PATH 2>> /dev/null
+      tar -cf - -C $SERVER_WORLD . | $COMPRESSION_ALGORITHM -cv -$COMPRESSION_LEVEL - > $ARCHIVE_PATH
       ;;
   esac
   sync
